@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>로그인</title>
+    <script>
+    function sb(){
+        document.getElementById('login').submit()
+    }
+    </script>
+</head>
+<body>
+   <form id='login' method='post' action="/login/value" onsubmit='sb()'>
+   <input id='Pw' name='pw' type="password" autofocus>
+   </form>
+   <button type='submit' onclick="sb()">요청</button>
+</body>
+</html>

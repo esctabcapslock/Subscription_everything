@@ -1,0 +1,28 @@
+a{color: black;text-decoration:none;}
+a:visited{color: black}
+.art{
+  margin: 40px 0;
+}
+.art  .ar_name {
+  font-weight: bold;
+  font-size: 1.3em;
+  margin-bottom: 10px;
+  margin-left: 10px;
+}
+.art .press{
+  font-weight: bold;
+}
+
+.art .desc{
+  font-weight: lighter;
+}
+#textarea{
+    width:90%;
+    height: 400px;
+}
+.정상{
+    background-color: rgb(86, 253, 86);
+  }
+  .비정상{
+    background-color: rgb(255, 141, 20);
+  }
