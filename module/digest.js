@@ -1,5 +1,12 @@
 const crypto = require('crypto');
 const MD5 = (txt)=> crypto.createHash('md5').update(txt).digest('hex');
+const SHA256 = (txt)=> crypto.createHash('sha256').update(txt).digest('hex');
+//https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/WWW-Authenticate
+//https://feel5ny.github.io/2019/11/24/HTTP_013_01/
+
+//Digest 해시 알고리즘 크롬:SHA256X, 파폭:O. SHA512는 둘 다 지원 안 함
+//https://bugs.chromium.org/p/chromium/issues/detail?id=1160478
+
 
 class Digest{
     constructor(realm, qop){
@@ -18,9 +25,9 @@ class Digest{
         const password = '12134';
         const method = 'GET'
 
-        const HA1 = MD5(`${auth.username}:${this.realm}:${password}`)
-        const HA2 = MD5(`${method}:${auth.uri}`);
-        const response = MD5(`${HA1}:${nonce}:${auth.nc}:${auth.cnonce}:${auth.qop}:${HA2}`) 
+        const HA1 = SHA256(`${auth.username}:${this.realm}:${password}`)
+        const HA2 = SHA256(`${method}:${auth.uri}`);
+        const response = SHA256(`${HA1}:${nonce}:${auth.nc}:${auth.cnonce}:${auth.qop}:${HA2}`) 
         if (response != auth.response) return false;
         return true;
     }
@@ -78,14 +85,14 @@ class Digest{
     }
     __create_nonce(){
         if(this.nonce) this.authed_nonce.push(this.nonce)  //없을 떄(ex. 처음 시작시) 방지
-        this.nonce = MD5(`24h5angle${Math.random()**2} ${new Date()}`)
+        this.nonce = SHA256(`24h5angle${Math.random()**2} ${new Date()}`)
         console.log('[create_nonce]', this.nonce)
     }
 
     __create_auth_nonce(){
         if(this.non_authed_nonce.length>10) this.non_authed_nonce = this.non_authed_nonce.splice(1); //너무 크면 자른다.
 
-        const nonce = MD5(`24h5angle${Math.random()**2} ${new Date()}`)
+        const nonce = SHA256(`24h5angle${Math.random()**2} ${new Date()}`)
         console.log('[create_auth_nonce]', nonce)
         this.non_authed_nonce.push(nonce)
         return nonce;
@@ -95,20 +102,30 @@ class Digest{
         const auth = this.__parse(req.headers.authorization)
         const ip = req.headers['x-forwarded-for'] ||  req.connection.remoteAddress
 
+        console.log(req.headers.authorization)
+        if(req.headers.authorization && !auth){ //인증 요청안에 이상한 걸 넣었을 경우
+            res.writeHead(400)
+            res.end('400 Bad Request');
+            return;
+        }
+
         //인증X경우
         if(!this.__allow_check(auth)){
             //과거에 인증한 이력이 있는 논스
             if(auth && this.authed_nonce.includes(auth.nonce)){
                 console.log('인증했음')
-                res.writeHead(401, {'WWW-Authenticate':`Digest stale=true, realm="${this.realm}", nonce="${this.nonce}", qop="${this.qop}"`});
+                res.writeHead(401, {'WWW-Authenticate':`Digest stale=true, realm="${this.realm}", nonce="${this.nonce}", qop="${this.qop}", algorithm=SHA-256`});
             }
             else {
                 console.log('인증X했음')
-                res.writeHead(401, {'WWW-Authenticate':`Digest realm="${this.realm}", nonce="${this.__create_auth_nonce()}", qop="${this.qop}"`});
+                res.writeHead(401, {'WWW-Authenticate':`Digest realm="${this.realm}", nonce="${this.__create_auth_nonce()}", qop="${this.qop}", algorithm=SHA-256`});
             }
             res.end('401 인증요함');
             return false;
+            //algorithm=SHA-512
         }
+
+
         //else res.setHeader('Authentication-Info', `nextnonce="${this.nonce}"`); //없는 듯?
         console.log(`nextnonce="${this.nonce}"`)
         callback(req,res)
