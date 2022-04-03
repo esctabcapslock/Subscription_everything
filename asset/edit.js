@@ -1,5 +1,6 @@
 const edit = {
     dom:{},
+    file_type: location.toString().split('/').slice(-1)[0],
     set:()=>{
         edit.dom.textarea = document.getElementById('textarea')
         edit.dom.textarea.addEventListener('keyup',edit.splcheck)
@@ -17,7 +18,7 @@ const edit = {
     },
     update:()=>{
         var data = edit.dom.textarea.value;
-        try{JSON.parse(edit.dom.textarea.value);
+        try{edit.file_type.endsWith('.json') &&JSON.parse(edit.dom.textarea.value);
             fetch("./update/json", {
                 method: "POST",
                 body: data

@@ -12,3 +12,8 @@
 - cheerio로 HTML 파싱하는 것.
 - crypto 자체모듈로 aes 암호화를 이용해서, json파일 암호화했음.
 - euc-kr을 utf-8로 바꿔야 하기도 했음. [유튜브 다운로드 서버](https://github.com/esctabcapslock/Youtube-dl_server)에서 사용했던 코드 복붙!
+- http 인증 기술을 사용한다.
+
+## 추가 (2022.04.03)
+- 비밀번호가 저장된 파일을 따로 분리했음.
+- 이를 관리하는 모듈 만듦

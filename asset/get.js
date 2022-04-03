@@ -1,11 +1,21 @@
 const get={
     dom:{
-
     },
     set:()=>{
         get.dom.새로고침 = document.getElementById('새로고침')
         get.dom.새로고침.addEventListener('click',get.get_data)
         get.dom.main = document.getElementById('main')
+        get.dom.file_list = document.getElementById('file_list')
+        get.get_file_list()
+        
+        
+    },
+    get_file_list:(callback)=>{
+        fetch('./list').then(d=>d.text()).then(data=>{
+            const d = JSON.parse(data)
+            get.dom.file_list.innerHTML = d.map(v=>`<li><a href='./edit/${v}'>${v}</a></li>`).join('\n')
+            console.log(d)
+        })
     },
     get_data:(callback)=>{
         fetch('./info').then(d=>d.text()).then(data=>{

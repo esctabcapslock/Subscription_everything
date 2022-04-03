@@ -1,34 +1,19 @@
 const http = require('http')
 const fs = require('fs')
-const port = 80;
+const port = 88;
 const asset_list = fs.readdirSync('./asset')
 const lists_list = fs.readdirSync('./lists')
 const crypto = require('crypto');
 const News = require('./module/news').News
 const RSS = require('./module/rss').RSS
 const Digest = require('./module/digest').Digest
-const digest = new Digest('/')
+const {encrypt, decrypt} = require('./module/encrypt')
+const digest = new Digest('/',()=>decrypt(fs.readFileSync('key.txt').toString().replace(/\r/gi,'').replace(/\n/gi,'')))
 
-const SHA512 = (txt)=>{
-    const hash = crypto.createHash('sha512');
-    const data = hash.update('solt_txt_1234'+txt, 'utf-8');
-    const gen_hash= data.digest('hex');
-    return gen_hash;
-}
+try{fs.statSync('key.txt')}catch(err){fs.appendFileSync('key.txt',encrypt('1234'))} //초기 비번설정
 
-var encrypt = ((val) => {
-    //console.log('[encrypt]',val)
-    let cipher = crypto.createCipheriv('aes-256-cbc', '577acec9d2fb7c3c70f1f056224c00ad', '55e66e23e349f0cb');
-    let encrypted = cipher.update(val, 'utf8', 'base64');
-    encrypted += cipher.final('base64');
-    return encrypted;
-  });
-  
-var decrypt = ((encrypted) => {
-    let decipher = crypto.createDecipheriv('aes-256-cbc', '577acec9d2fb7c3c70f1f056224c00ad', '55e66e23e349f0cb');
-    let decrypted = decipher.update(encrypted, 'base64', 'utf8');
-    return (decrypted + decipher.final('utf8'));
-});
+
+const SHA512 = (txt)=> crypto.createHash('sha512').hash.update('solt_txt_1234'+txt, 'utf-8').digest('hex');
 
 //6lio+wOMHVNyAPtnt7rmsA== : 공백
 
@@ -51,7 +36,7 @@ const server = http.createServer((req, res)=>digest.server(req,res,(req,res)=>{
     const method = req.method
     const ip = req.headers['x-forwarded-for'] ||  req.connection.remoteAddress
     
-    console.log('[ip]',ip,'[url]',url,'[referer]',referer)
+    console.log('[ip]',ip,'[url]',url,'[referer]',referer, '[method]',method)
 
     function _404(res, url, err){
         console.error('_404 fn err', url, err)

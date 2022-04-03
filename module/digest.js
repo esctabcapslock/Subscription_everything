@@ -9,21 +9,23 @@ const SHA256 = (txt)=> crypto.createHash('sha256').update(txt).digest('hex');
 
 
 class Digest{
-    constructor(realm, qop){
+    constructor(realm, pwfn, qop){
         this.realm = realm?realm:'/'; //접근 영역
         this.qop = qop?qop:'auth'
         this.non_authed_nonce = [];
         this.authed_nonce = [];
         this.cnonce = []
         this.allow_user = ['1']
+        this.pwfn = pwfn
         this.__create_nonce()
         //선택된 보호 수준 (quality of protection, qop)
         //https://feel5ny.github.io/2019/11/24/HTTP_013_01/
     }
 
-    __create_res(auth,nonce){
-        const password = '12134';
-        const method = 'GET'
+    __create_res(auth,nonce, method){
+        console.log(this, this,this.pwfn())
+        const password = this.pwfn();
+        //const method = 'GET'
 
         const HA1 = SHA256(`${auth.username}:${this.realm}:${password}`)
         const HA2 = SHA256(`${method}:${auth.uri}`);
@@ -32,21 +34,21 @@ class Digest{
         return true;
     }
 
-    __allow_check(auth){
+    __allow_check(auth, method){
         //Digest username="1", realm="hihi", nonce="", uri="/", response="a749cf378780db83f455b7ed16404252"
         //Digest username="1", realm="/", nonce="ed90be88623e39bfbd799cc3bd1b2ad3", uri="/", response="739bde2cbde77598bec6d91b5c43a5b3", qop=auth, nc=00000001, cnonce="c0c9ac7a2aab0d9a"
         
         if(!auth || !this.allow_user.includes(auth.username)) return false;
         console.log('[인증요청확인]',auth, this.nonce)
 
-        if(this.__create_res(auth, this.nonce)) {
+        if(this.__create_res(auth, this.nonce, method)) {
             console.log('[인증성공!] 현재 논스에 부합. ')
             this.__create_nonce(); //인증했으니 논스 무효화!
             return true;
         }
 
         if(this.non_authed_nonce.some((nonce,i)=>{
-            if(this.__create_res(auth, nonce)){
+            if(this.__create_res(auth, nonce, method)){
                 console.log('[인증 성공!] 처음 인증 목록에 논스 있음. ')
                 //인증했으니 논스 무효화!
                 this.authed_nonce.push(nonce) 
@@ -99,7 +101,8 @@ class Digest{
     }
     
     server(req,res,callback){
-        const auth = this.__parse(req.headers.authorization)
+        const method = req.method
+        const auth = this.__parse(req.headers.authorization);
         const ip = req.headers['x-forwarded-for'] ||  req.connection.remoteAddress
 
         console.log(req.headers.authorization)
@@ -110,7 +113,7 @@ class Digest{
         }
 
         //인증X경우
-        if(!this.__allow_check(auth)){
+        if(!this.__allow_check(auth, method)){
             //과거에 인증한 이력이 있는 논스
             if(auth && this.authed_nonce.includes(auth.nonce)){
                 console.log('인증했음')

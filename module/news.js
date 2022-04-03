@@ -1,15 +1,10 @@
 const https = require('https')
 const fs = require('fs')
 const cheerio = require('cheerio')
-const crypto = require('crypto');
+// const crypto = require('crypto');
 var Iconv = require('iconv-lite');
-  
-var decrypt = ((encrypted) => {
-    let decipher = crypto.createDecipheriv('aes-256-cbc', '577acec9d2fb7c3c70f1f056224c00ad', '55e66e23e349f0cb');
-    let decrypted = decipher.update(encrypted, 'base64', 'utf8');
-    return (decrypted + decipher.final('utf8'));
-});
 
+const {decrypt} = require('./encrypt')
 const News = {
     list:null,
     get_list:()=>{

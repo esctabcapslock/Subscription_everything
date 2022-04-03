@@ -1,13 +1,15 @@
 const https = require('https')
 const fs = require('fs')
 const xml2js = require('xml2js');
-const crypto = require('crypto');
-
-var decrypt = ((encrypted) => {
-    let decipher = crypto.createDecipheriv('aes-256-cbc', '577acec9d2fb7c3c70f1f056224c00ad', '55e66e23e349f0cb');
-    let decrypted = decipher.update(encrypted, 'base64', 'utf8');
-    return (decrypted + decipher.final('utf8'));
-});
+// const crypto = require('crypto');
+const {decrypt} = require('./encrypt')
+// let decrypt = undefined
+// let add_decryptfn = (decryptfn)=>decrypt=decryptfn
+// var decrypt = ((encrypted) => {
+//     let decipher = crypto.createDecipheriv('aes-256-cbc', '[]', '[]');
+//     let decrypted = decipher.update(encrypted, 'base64', 'utf8');
+//     return (decrypted + decipher.final('utf8'));
+// });
 
 const RSS = {
     list:null,
@@ -74,3 +76,4 @@ const RSS = {
 }
 
 module.exports.RSS=RSS
+// module.exports.add_decryptfn = add_decryptfn
